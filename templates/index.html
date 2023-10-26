@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stock Data</title>
+</head>
+<body>
+    <h1>Stock Data</h1>
+    <form method="POST">
+        <label for="tickers">Enter Stock Tickers (up to 10, comma-separated): </label>
+        <input type="text" id="tickers" name="tickers" required>
+        <button type="submit">Get Data</button>
+    </form>
+    {% if tickers %}
+        <h2>Stock Data</h2>
+        <table>
+            <tr>
+                <th>Ticker</th>
+                <th>P/E Ratio</th>
+                <th>Stock Price</th>
+            </tr>
+            {% for ticker in tickers %}
+            <tr>
+                <td>{{ ticker }}</td>
+                <td>{{ pe_ratios.get(ticker, 'N/A') }}</td>
+                <td>{{ stock_prices.get(ticker, 'N/A') }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+</body>
+</html>
