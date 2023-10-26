@@ -1,19 +1,40 @@
+import requests
 from flask import Flask, render_template, request
-import yfinance as yf
+from bs4 import BeautifulSoup
 
 app = Flask(__name__, template_folder='templates')
 
-# Function to get the P/E ratio and stock price from Yahoo Finance
-def get_stock_info(ticker):
-    try:
-        stock = yf.Ticker(ticker)
-        info = stock.info
-        pe_ratio = info.get('trailingPE', 'N/A')
-        stock_price = info.get('ask', 'N/A')  # Use 'ask' for more real-time stock price
-        return pe_ratio, stock_price
-    except Exception as e:
-        print(f"Error fetching stock info: {e}")
-        return 'N/A', 'N/A'
+# Function to scrape P/E ratio from Yahoo Finance
+def get_pe_ratio(ticker):
+    url = f"https://finance.yahoo.com/quote/{ticker}"
+    headers = {
+        "User-Agent": "Your User Agent String"
+    }
+    response = requests.get(url, headers=headers)
+    
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, "html.parser")
+        pe_ratio_element = soup.find("td", {"data-test": "OPEN-value"})
+        if pe_ratio_element:
+            pe_ratio = pe_ratio_element.text
+            return pe_ratio
+    return 'N/A'
+
+# Function to get the current stock price from Yahoo Finance
+def get_stock_price(ticker):
+    url = f"https://finance.yahoo.com/quote/{ticker}"
+    headers = {
+        "User-Agent": "Your User Agent String"
+    }
+    response = requests.get(url, headers=headers)
+    
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, "html.parser")
+        price_element = soup.find("td", {"data-test": "OPEN-value"})
+        if price_element:
+            stock_price = price_element.text
+            return stock_price
+    return 'N/A'
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -24,7 +45,8 @@ def index():
         data = {}
 
         for ticker in tickers:
-            pe_ratio, stock_price = get_stock_info(ticker)
+            pe_ratio = get_pe_ratio(ticker)
+            stock_price = get_stock_price(ticker)
             data[ticker] = {"P/E Ratio": pe_ratio, "Stock Price": stock_price}
 
         return render_template("index.html", data=data)
