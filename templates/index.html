@@ -10,7 +10,7 @@
         <input type="text" id="tickers" name="tickers" required>
         <button type="submit">Get Data</button>
     </form>
-    {% if tickers %}
+    {% if data %}
         <h2>Stock Data</h2>
         <table>
             <tr>
@@ -18,11 +18,11 @@
                 <th>P/E Ratio</th>
                 <th>Stock Price</th>
             </tr>
-            {% for ticker in tickers %}
+            {% for ticker, info in data.items() %}
             <tr>
                 <td>{{ ticker }}</td>
-                <td>{{ pe_ratios.get(ticker, 'N/A') }}</td>
-                <td>{{ stock_prices.get(ticker, 'N/A') }}</td>
+                <td>{{ info['P/E Ratio'] }}</td>
+                <td>{{ info['Stock Price'] }}</td>
             </tr>
             {% endfor %}
         </table>

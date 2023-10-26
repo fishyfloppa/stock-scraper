@@ -1,29 +1,19 @@
 from flask import Flask, render_template, request
-import requests
 import yfinance as yf
 
 app = Flask(__name__, template_folder='templates')
 
-# Function to scrape P/E ratio from YCharts
-def get_pe_ratio(ticker):
-    url = f"https://ycharts.com/companies/{ticker}/pe_ratio"
-    response = requests.get(url)
-    if response.status_code == 200:
-        pe_ratio = response.text
-        return pe_ratio
-    return None
-
-# Function to get the current stock price from Yahoo Finance
-def get_stock_price(ticker):
+# Function to get the P/E ratio and stock price from Yahoo Finance
+def get_stock_info(ticker):
     try:
         stock = yf.Ticker(ticker)
-        data = stock.history(period="1d")
-        if not data.empty:
-            stock_price = data["Close"].values[0]
-            return stock_price
+        info = stock.info
+        pe_ratio = info.get('trailingPE', 'N/A')
+        stock_price = info.get('ask', 'N/A')  # Use 'ask' for more real-time stock price
+        return pe_ratio, stock_price
     except Exception as e:
-        print(f"Error fetching stock price: {e}")
-    return None
+        print(f"Error fetching stock info: {e}")
+        return 'N/A', 'N/A'
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -31,18 +21,15 @@ def index():
         tickers = [ticker.strip() for ticker in request.form.get("tickers", "").split(",")]
         max_tickers = 10  # Maximum number of tickers to display
 
-        pe_ratios = {}
-        stock_prices = {}
+        data = {}
 
         for ticker in tickers:
-            pe_ratio = get_pe_ratio(ticker)
-            stock_price = get_stock_price(ticker)
-            pe_ratios[ticker] = pe_ratio
-            stock_prices[ticker] = stock_price
+            pe_ratio, stock_price = get_stock_info(ticker)
+            data[ticker] = {"P/E Ratio": pe_ratio, "Stock Price": stock_price}
 
-        return render_template("index.html", tickers=tickers, pe_ratios=pe_ratios, stock_prices=stock_prices)
+        return render_template("index.html", data=data)
 
     return render_template("index.html")
 
 if __name__ == "__main__":
-    app.run(port=1000)
+    app.run(debug=True)
