@@ -14,7 +14,7 @@ def get_pe_ratio(ticker):
     
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, "html.parser")
-        pe_ratio_element = soup.find("td", {"data-test": "OPEN-value"})
+        pe_ratio_element = soup.find("td", {"data-test": "PE_RATIO-value"})
         if pe_ratio_element:
             pe_ratio = pe_ratio_element.text
             return pe_ratio
